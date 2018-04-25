@@ -16,7 +16,9 @@ export interface Link {
 }
 
 export interface FollowOptions {
-  queryParams?: any
+  queryParams?: any,
+  body?: any,
+  headers?: any
 }
 
 export class LadokApiError extends Error {
@@ -42,12 +44,16 @@ function parseJSON (response: string) {
   return JSON.parse(response)
 }
 
-function serviceForRel (rel: string) {
+function serviceForRel (rel: string): string {
   let match = rel.match(/http:\/\/relations.ladok.se\/([^/]+)\/.*/)
   if (!match) {
     throw new LadokApiError('unable to parse relation string: ' + rel)
   }
   return match[1]
+}
+
+function defaultContentTypeForService (serviceName: string) {
+  return `application/vnd.ladok-${serviceName}+json`
 }
 
 function findLink (links: Link[], rel: string, method: string = 'GET') {
@@ -62,13 +68,32 @@ function findLink (links: Link[], rel: string, method: string = 'GET') {
 
 export function createLadokApiClient ({ baseUrl, sslOptions }: LadokApiClientConfig): LadokApiClient {
   const cookieJar = request.jar()
-  const options = {
-    jar: cookieJar,
-    headers: {
-      Accept: 'application/vnd.ladok-kataloginformation+json, application/vnd.ladok-utbildningsinformation+json, application/vnd.ladok-resultat+json, application/vnd.ladok-studiedeltagande+json'
-    },
 
-    agentOptions: sslOptions
+  function createGetOptionsForService (service: string, headers?: any) {
+    return {
+      jar: cookieJar,
+      agentOptions: sslOptions,
+      headers: {
+        Accept: defaultContentTypeForService(service),
+        ...headers
+      }
+    }
+  }
+
+  function createGetOrDeleteOptions (link: Link, headers?: any) {
+    return createGetOptionsForService(serviceForRel(link.rel), headers)
+  }
+
+  function createPutOrPostOptions (link: Link, body: any, headers?: any) {
+    let optionsForGet = createGetOrDeleteOptions(link, headers)
+    return {
+      ...optionsForGet,
+      body: JSON.stringify(body),
+      headers: {
+        'Content-Type': optionsForGet.headers.Accept,
+        ...optionsForGet.headers
+      }
+    }
   }
 
   const linkIndex = new Map()
@@ -76,7 +101,7 @@ export function createLadokApiClient ({ baseUrl, sslOptions }: LadokApiClientCon
   async function fetchIndexForService (service: string) {
     if (!service) throw new LadokApiError('argument service is required')
     const url = `${baseUrl}/${service}/service/index`
-    return parseJSON(await request.get(url, options))
+    return parseJSON(await request.get(url, createGetOptionsForService(service)))
   }
 
   async function getIndexLinksForService (service: string) {
@@ -98,7 +123,7 @@ export function createLadokApiClient ({ baseUrl, sslOptions }: LadokApiClientCon
   function createLinkFromPath (path: string, method: string = 'GET'): Link {
     return {
       uri: baseUrl + path,
-      rel: '',
+      rel: 'http://relations.ladok.se' + path,
       method
     }
   }
@@ -110,8 +135,15 @@ export function createLadokApiClient ({ baseUrl, sslOptions }: LadokApiClientCon
     if (followOptions && followOptions.queryParams) {
       Object.assign(urlObj.query, followOptions.queryParams)
     }
+    const body = followOptions && followOptions.body || {}
     if (link.method === 'GET') {
-      return parseJSON(await request.get(url.format(urlObj), options))
+      return parseJSON(await request.get(url.format(urlObj), createGetOrDeleteOptions(link)))
+    } else if (link.method === 'PUT') {
+      return parseJSON(await request.put(url.format(urlObj), createPutOrPostOptions(link, body)))
+    } else if (link.method === 'POST') {
+      return parseJSON(await request.post(url.format(urlObj), createPutOrPostOptions(link, body)))
+    } else if (link.method === 'DELETE') {
+      return parseJSON(await request.put(url.format(urlObj), createGetOrDeleteOptions(link)))
     } else {
       throw new Error('unsupported method ' + link.method)
     }

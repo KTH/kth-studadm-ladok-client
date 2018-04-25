@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "preversion": "npm run codecheck && npm run test",
+    "preversion": "npm run codecheck",
     "postversion": "git push && git push --tags",
     "prepublish": "npm run build",
     "build": "tsc",
@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@types/request-promise-native": "^1.0.14",
+    "request": "^2.85.0",
     "request-promise-native": "^1.0.5"
   }
 }

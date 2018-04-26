@@ -1,4 +1,5 @@
-import { FollowOptions, LadokApiClient, LadokApiError, Link } from './ladok-api-client'
+import { FollowOptions, LadokApiClient } from './ladok-api-client'
+import { LadokApiError, Link } from './utils'
 
 export type LadokResponder<T> = (input: { followOptions: FollowOptions, link: Link }) => Promise<T>
 

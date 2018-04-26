@@ -5,7 +5,7 @@
     ],
     "jsRules": {},
     "rules": {
-        "no-duplicate-imports": false
+        "await-promise": [true, "RequestPromise"]
     },
     "rulesDirectory": []
 }

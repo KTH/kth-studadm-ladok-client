@@ -1,6 +1,15 @@
 import 'mocha'
 import { expect } from 'chai'
-import { defaultContentTypeForService, findLink, LadokApiError, Link, serviceForRel, serviceForUri } from './utils'
+import {
+  createRequestHeadersForIndex,
+  createRequestHeadersForLink,
+  defaultContentTypeForService,
+  findLink,
+  LadokApiError,
+  Link,
+  serviceForRel,
+  serviceForUri
+} from './utils'
 
 describe('utils', function () {
   describe('serviceForRel', function () {
@@ -80,6 +89,100 @@ describe('utils', function () {
 
     it('should throw a LadokApiError if the link is not found', function () {
       expect(() => findLink(links, relNotFound)).to.throw(LadokApiError)
+    })
+  })
+
+  describe('createRequestHeadersForIndex', function () {
+    it('should create default Accept for service', function () {
+      expect(createRequestHeadersForIndex('resultat')).to.deep.equal({
+        Accept: 'application/vnd.ladok-resultat+json'
+      })
+    })
+  })
+
+  describe('createRequestHeadersForLink', function () {
+    it('should use default Accept for service', function () {
+      const getLink = {
+        rel: 'self',
+        uri: 'https://api.ladok.se/resultat/uri',
+        method: 'GET'
+      }
+      expect(createRequestHeadersForLink(getLink)).to.deep.equal({
+        Accept: 'application/vnd.ladok-resultat+json'
+      })
+    })
+
+    it('should use provided Accept', function () {
+      const getLink = {
+        rel: 'self',
+        uri: 'https://api.ladok.se/indexwithoutservice',
+        method: 'GET'
+      }
+      let headers = createRequestHeadersForLink(getLink, {
+        Accept: 'text/html'
+      })
+      expect(headers).to.deep.equal({
+        Accept: 'text/html'
+      })
+    })
+
+    it('should extend provided headers', function () {
+      const getLink = {
+        rel: 'http://relations.ladok.se/resultat/rel',
+        uri: 'https://api.ladok.se/resultat/uri',
+        method: 'GET'
+      }
+      let headers = createRequestHeadersForLink(getLink, {
+        'User-Agent': 'KTH'
+      })
+      expect(headers).to.deep.equal({
+        Accept: 'application/vnd.ladok-resultat+json',
+        'User-Agent': 'KTH'
+      })
+    })
+
+    it('should use default Content-Type for service', function () {
+      const postLink = {
+        rel: 'self',
+        uri: 'https://api.ladok.se/resultat/uri',
+        method: 'POST'
+      }
+      let headers = createRequestHeadersForLink(postLink)
+      expect(headers).to.deep.equal({
+        Accept: 'application/vnd.ladok-resultat+json',
+        'Content-Type': 'application/vnd.ladok-resultat+json'
+      })
+    })
+
+    it('should use provided Content-Type', function () {
+      const postLink = {
+        rel: 'self',
+        uri: 'https://api.ladok.se/resultat/uri',
+        method: 'POST'
+      }
+      let headers = createRequestHeadersForLink(postLink, {
+        'Content-Type': 'application/pdf'
+      })
+      expect(headers).to.deep.equal({
+        Accept: 'application/vnd.ladok-resultat+json',
+        'Content-Type': 'application/pdf'
+      })
+    })
+
+    it('should extend provided POST headers', function () {
+      const getLink = {
+        rel: 'http://relations.ladok.se/resultat/rel',
+        uri: 'https://api.ladok.se/resultat/uri',
+        method: 'POST'
+      }
+      let headers = createRequestHeadersForLink(getLink, {
+        'User-Agent': 'KTH'
+      })
+      expect(headers).to.deep.equal({
+        Accept: 'application/vnd.ladok-resultat+json',
+        'Content-Type': 'application/vnd.ladok-resultat+json',
+        'User-Agent': 'KTH'
+      })
     })
   })
 })

@@ -40,3 +40,31 @@ export function findLink (links: Link[], rel: string, method: string = 'GET') {
   }
   return result
 }
+
+export interface GetDeleteHeaders {
+  Accept: string,
+  [key: string]: string
+}
+
+export function createRequestHeadersForIndex (service: string) {
+  return {
+    Accept: defaultContentTypeForService(service)
+  }
+}
+
+export function createRequestHeadersForLink (link: Link, headers: {[key: string]: string} = {}): GetDeleteHeaders {
+  if (link.method === 'GET' || link.method === 'DELETE') {
+    return {
+      Accept: headers.Accept || defaultContentTypeForService(serviceForUri(link.uri)),
+      ...headers
+    }
+  } else if (link.method === 'POST' || link.method === 'PUT') {
+    return {
+      Accept: headers.Accept || defaultContentTypeForService(serviceForUri(link.uri)),
+      'Content-Type': headers['Content-Type'] || defaultContentTypeForService(serviceForUri(link.uri)),
+      ...headers
+    }
+  } else {
+    throw new LadokApiError('unsupported http method ' + link.method)
+  }
+}

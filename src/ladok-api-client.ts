@@ -1,6 +1,13 @@
 import request from 'request-promise-native'
 import url from 'url'
-import { defaultContentTypeForService, findLink, LadokApiError, Link, serviceForRel, serviceForUri } from './utils'
+import {
+  createRequestHeadersForIndex,
+  createRequestHeadersForLink,
+  findLink,
+  LadokApiError,
+  Link,
+  serviceForRel
+} from './utils'
 
 export interface LadokApiClientConfig {
   baseUrl: string,
@@ -13,7 +20,9 @@ export interface LadokApiClientConfig {
 export interface FollowOptions {
   queryParams?: any,
   body?: any,
-  headers?: any
+  headers?: {
+    [key: string]: string
+  }
 }
 
 export interface LadokApiClient {
@@ -35,30 +44,27 @@ function parseJSON (response: string) {
 export function createLadokApiClient ({ baseUrl, sslOptions }: LadokApiClientConfig): LadokApiClient {
   const cookieJar = request.jar()
 
-  function createGetOptionsForService (service: string, headers?: any) {
+  function createRequestOptions (link: Link, headers?: any) {
     return {
       jar: cookieJar,
       agentOptions: sslOptions,
-      headers: {
-        Accept: defaultContentTypeForService(service),
-        ...headers
-      }
+      headers: createRequestHeadersForLink(link, headers)
     }
   }
 
-  function createGetOrDeleteOptions (link: Link, headers?: any) {
-    return createGetOptionsForService(serviceForUri(link.uri), headers)
+  function createGetOptionsForService (service: string) {
+    return {
+      jar: cookieJar,
+      agentOptions: sslOptions,
+      headers: createRequestHeadersForIndex(service)
+    }
   }
 
   function createPutOrPostOptions (link: Link, body: any, headers?: any) {
-    let optionsForGet = createGetOrDeleteOptions(link, headers)
+    const optionsForGet = createRequestOptions(link, headers)
     return {
       ...optionsForGet,
-      body: JSON.stringify(body),
-      headers: {
-        'Content-Type': optionsForGet.headers.Accept,
-        ...optionsForGet.headers
-      }
+      body: JSON.stringify(body)
     }
   }
 
@@ -102,14 +108,15 @@ export function createLadokApiClient ({ baseUrl, sslOptions }: LadokApiClientCon
       Object.assign(urlObj.query, followOptions.queryParams)
     }
     const body = followOptions && followOptions.body || {}
+    const headers = followOptions && followOptions.headers || {}
     if (link.method === 'GET') {
-      return parseJSON(await request.get(url.format(urlObj), createGetOrDeleteOptions(link)).promise())
+      return parseJSON(await request.get(url.format(urlObj), createRequestOptions(link, headers)).promise())
     } else if (link.method === 'PUT') {
-      return parseJSON(await request.put(url.format(urlObj), createPutOrPostOptions(link, body)).promise())
+      return parseJSON(await request.put(url.format(urlObj), createPutOrPostOptions(link, body, headers)).promise())
     } else if (link.method === 'POST') {
-      return parseJSON(await request.post(url.format(urlObj), createPutOrPostOptions(link, body)).promise())
+      return parseJSON(await request.post(url.format(urlObj), createPutOrPostOptions(link, body, headers)).promise())
     } else if (link.method === 'DELETE') {
-      return parseJSON(await request.put(url.format(urlObj), createGetOrDeleteOptions(link)).promise())
+      return parseJSON(await request.put(url.format(urlObj), createRequestOptions(link, headers)).promise())
     } else {
       throw new Error('unsupported method ' + link.method)
     }

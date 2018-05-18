@@ -23,14 +23,14 @@
     "@types/mocha": "^5.2.0",
     "chai": "^4.1.2",
     "mocha": "^5.1.1",
-    "ts-node": "^6.0.1",
-    "tslint": "^5.9.1",
+    "ts-node": "^6.0.3",
+    "tslint": "^5.10.0",
     "tslint-config-standard": "^7.0.0",
-    "typescript": "^2.8.1"
+    "typescript": "^2.8.3"
   },
   "dependencies": {
     "@types/request-promise-native": "^1.0.14",
-    "request": "^2.85.0",
+    "request": "^2.86.0",
     "request-promise-native": "^1.0.5"
   }
 }

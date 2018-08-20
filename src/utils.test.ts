@@ -1,6 +1,7 @@
 import 'mocha'
 import { expect } from 'chai'
 import {
+  createOptionsFactory,
   createRequestHeadersForIndex,
   createRequestHeadersForLink,
   defaultContentTypeForService,
@@ -182,6 +183,78 @@ describe('utils', function () {
         Accept: 'application/vnd.ladok-resultat+json',
         'Content-Type': 'application/vnd.ladok-resultat+json',
         'User-Agent': 'KTH'
+      })
+    })
+  })
+
+  describe('optionsFactory', function () {
+    const cookieJar = true
+    const sslOptions = { pfx: 'pfxdata', passphrase: 'pfxpass' }
+    const getLink = {
+      rel: 'http://relations.ladok.se/resultat/rel',
+      uri: 'https://api.ladok.se/resultat/uri',
+      method: 'GET'
+    }
+    const postLink = {
+      rel: 'self',
+      uri: 'https://api.ladok.se/resultat/uri',
+      method: 'POST'
+    }
+    const optionsFactory = createOptionsFactory(cookieJar, sslOptions)
+    describe('createRequestOptions', function () {
+      it('should include jar and ssl options', function () {
+        const options = optionsFactory.createRequestOptions(getLink, {}, {})
+        expect(options.agentOptions).to.equal(sslOptions)
+        expect(options.jar).to.equal(cookieJar)
+      })
+
+      it('should include any additional request js options', function () {
+        const options = optionsFactory.createRequestOptions(getLink, {}, {
+          timeout: 10000,
+          gzip: true,
+          jar: false
+        })
+        expect(options.timeout).to.equal(10000)
+        expect(options.gzip).to.equal(true)
+        expect(options.jar).to.equal(true)
+      })
+    })
+
+    describe('createPutOrPostOptions', function () {
+      it('should include jar and ssl options', function () {
+        const options = optionsFactory.createPutOrPostOptions(postLink, {}, {}, {})
+        expect(options.agentOptions).to.equal(sslOptions)
+        expect(options.jar).to.equal(cookieJar)
+      })
+
+      it('should include any additional request js options', function () {
+        const options = optionsFactory.createPutOrPostOptions(postLink, {}, {}, {
+          timeout: 10000,
+          gzip: true,
+          jar: false
+        })
+        expect(options.timeout).to.equal(10000)
+        expect(options.gzip).to.equal(true)
+        expect(options.jar).to.equal(true)
+      })
+    })
+
+    describe('createPutOrPostOptions', function () {
+      it('should include jar and ssl options', function () {
+        const options = optionsFactory.createGetOptionsForService('examen', {})
+        expect(options.agentOptions).to.equal(sslOptions)
+        expect(options.jar).to.equal(cookieJar)
+      })
+
+      it('should include any additional request js options', function () {
+        const options = optionsFactory.createGetOptionsForService('examen', {
+          timeout: 10000,
+          gzip: true,
+          jar: false
+        })
+        expect(options.timeout).to.equal(10000)
+        expect(options.gzip).to.equal(true)
+        expect(options.jar).to.equal(true)
       })
     })
   })

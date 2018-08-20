@@ -1,3 +1,6 @@
+import { RequestPromiseOptions } from 'request-promise-native'
+import { CookieJar } from 'request'
+
 export interface Link {
   rel: string
   method: string
@@ -66,5 +69,45 @@ export function createRequestHeadersForLink (link: Link, headers: {[key: string]
     }
   } else {
     throw new LadokApiError('unsupported http method ' + link.method)
+  }
+}
+
+export interface OptionsFactory {
+  createRequestOptions (link: Link, headers: any, requestOptions: RequestPromiseOptions): RequestPromiseOptions
+  createGetOptionsForService (service: string, requestOptions: RequestPromiseOptions): RequestPromiseOptions
+  createPutOrPostOptions (link: Link, body: any, headers: any, requestOptions: RequestPromiseOptions): RequestPromiseOptions
+}
+
+export function createOptionsFactory (cookieJar: CookieJar | boolean, agentOptions: any): OptionsFactory {
+  function createRequestOptions (link: Link, headers: any, requestOptions: RequestPromiseOptions) {
+    return {
+      ...requestOptions,
+      jar: cookieJar,
+      agentOptions: agentOptions,
+      headers: createRequestHeadersForLink(link, headers)
+    }
+  }
+
+  function createGetOptionsForService (service: string, requestOptions: RequestPromiseOptions) {
+    return {
+      ...requestOptions,
+      jar: cookieJar,
+      agentOptions: agentOptions,
+      headers: createRequestHeadersForIndex(service)
+    }
+  }
+
+  function createPutOrPostOptions (link: Link, body: any, headers: any, requestOptions: RequestPromiseOptions) {
+    const optionsForGet = createRequestOptions(link, headers, requestOptions)
+    return {
+      ...optionsForGet,
+      body: JSON.stringify(body)
+    }
+  }
+
+  return {
+    createRequestOptions,
+    createGetOptionsForService,
+    createPutOrPostOptions
   }
 }

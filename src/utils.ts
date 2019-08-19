@@ -39,7 +39,7 @@ export function findLink (links: Link[], rel: string, method: string = 'GET') {
   if (!rel) throw new LadokApiError('argument rel is required')
   const result = links.filter(link => link.rel === rel && link.method === method).pop()
   if (!result) {
-    throw new LadokApiError('link not found for ' + rel + ', ' + method)
+    throw new LadokApiError('link not found for relation: ' + rel + ' and method: ' + method + '. There might be a problem with your access rights or the link does not exist.')
   }
   return result
 }

@@ -10,7 +10,6 @@ import {
 import got from 'got'
 import { Options } from 'got'
 import { CookieJar } from 'tough-cookie'
-import { promisify } from 'util'
 
 export interface LadokApiClientConfig {
   baseUrl: string,

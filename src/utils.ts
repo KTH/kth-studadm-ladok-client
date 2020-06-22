@@ -93,7 +93,7 @@ export function createOptionsFactory (cookieJar: CookieJar, httpsOptions: any): 
       ...requestOptions,
       cookieJar: cookieJar,
       https: httpsOptions,
-      headers: createRequestHeadersForIndex(service),
+      headers: createRequestHeadersForIndex(service)
     }
   }
 

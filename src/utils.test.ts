@@ -213,11 +213,11 @@ describe('utils', function () {
       it('should include any additional request js options', function () {
         const options = optionsFactory.createRequestOptions(getLink, {}, {
           timeout: 10000,
-          decompress: true,
+          decompress: false,
           cookieJar: cookieJar
         })
         expect(options.timeout).to.equal(10000)
-        expect(options.decompress).to.equal(true)
+        expect(options.decompress).to.equal(false)
         expect(options.cookieJar).to.equal(cookieJar)
       })
     })
@@ -250,13 +250,15 @@ describe('utils', function () {
 
       it('should include any additional request js options', function () {
         const options = optionsFactory.createGetOptionsForService('examen', {
-          timeout: 10000,
-          decompress: true,
-          cookieJar
+          timeout: 20000,
+          decompress: false,
+          cookieJar,
+          retry: 2
         })
-        expect(options.timeout).to.equal(10000)
-        expect(options.decompress).to.equal(true)
+        expect(options.timeout).to.equal(20000)
+        expect(options.decompress).to.equal(false)
         expect(options.cookieJar).to.equal(cookieJar)
+        expect(options.retry).to.equal(2)
       })
     })
   })

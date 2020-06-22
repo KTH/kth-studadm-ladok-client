@@ -101,7 +101,7 @@ export function createLadokApiClient ({ baseUrl, sslOptions }: LadokApiClientCon
       return (await got.post(url.format(urlObj), postOptions) as any).body.toJSON()
     } else if (link.method === 'DELETE') {
       let deleteOptions = optionsFactory.createRequestOptions(link, headers, requestOptions)
-      return parseJSON(await got.put(url.format(urlObj), deleteOptions) as any).body.toJSON()
+      return parseJSON(await got.delete(url.format(urlObj), deleteOptions) as any).body.toJSON()
     } else {
       throw new Error('unsupported method ' + link.method)
     }

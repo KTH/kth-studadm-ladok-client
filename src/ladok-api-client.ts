@@ -1,4 +1,3 @@
-import request, { RequestPromiseOptions } from 'request-promise-native'
 import url from 'url'
 import {
   createOptionsFactory,
@@ -7,6 +6,11 @@ import {
   Link,
   serviceForRel
 } from './utils'
+
+import got from 'got'
+import { Options } from 'got'
+import { CookieJar } from 'tough-cookie'
+import { promisify } from 'util'
 
 export interface LadokApiClientConfig {
   baseUrl: string,
@@ -19,7 +23,7 @@ export interface LadokApiClientConfig {
 export interface FollowOptions {
   queryParams?: any,
   body?: any,
-  requestOptions?: RequestPromiseOptions,
+  requestOptions?: Options,
   headers?: {
     [key: string]: string
   }
@@ -42,15 +46,16 @@ function parseJSON (response: string) {
 }
 
 export function createLadokApiClient ({ baseUrl, sslOptions }: LadokApiClientConfig): LadokApiClient {
-  const cookieJar = request.jar()
+  const cookieJar = new CookieJar()
   const optionsFactory = createOptionsFactory(cookieJar, sslOptions)
   const linkIndex = new Map()
 
-  async function fetchIndexForService (service: string, requestOptions?: RequestPromiseOptions) {
+  async function fetchIndexForService (service: string, requestOptions?: Options) {
     if (!service) throw new LadokApiError('argument service is required')
     const url = `${baseUrl}/${service}/service/index`
-    let getOptions = optionsFactory.createGetOptionsForService(service, requestOptions || {})
-    return parseJSON(await request.get(url, getOptions).promise())
+    let getOptions: Options = optionsFactory.createGetOptionsForService(service, requestOptions || {})
+    const resp: any = (await got(url, getOptions))
+    return resp.body.json()
   }
 
   async function getIndexLinksForService (service: string) {
@@ -89,16 +94,16 @@ export function createLadokApiClient ({ baseUrl, sslOptions }: LadokApiClientCon
     const requestOptions = followOptions && followOptions.requestOptions || {}
     if (link.method === 'GET') {
       let getOptionbs = optionsFactory.createRequestOptions(link, headers, requestOptions)
-      return parseJSON(await request.get(url.format(urlObj), getOptionbs).promise())
+      return (await got.get(url.format(urlObj), getOptionbs) as any).body.toJSON()
     } else if (link.method === 'PUT') {
       let putOptions = optionsFactory.createPutOrPostOptions(link, body, headers, requestOptions)
-      return parseJSON(await request.put(url.format(urlObj), putOptions).promise())
+      return (await got.put(url.format(urlObj), putOptions) as any).body.toJSON()
     } else if (link.method === 'POST') {
       let postOptions = optionsFactory.createPutOrPostOptions(link, body, headers, requestOptions)
-      return parseJSON(await request.post(url.format(urlObj), postOptions).promise())
+      return (await got.post(url.format(urlObj), postOptions) as any).body.toJSON()
     } else if (link.method === 'DELETE') {
       let deleteOptions = optionsFactory.createRequestOptions(link, headers, requestOptions)
-      return parseJSON(await request.put(url.format(urlObj), deleteOptions).promise())
+      return parseJSON(await got.put(url.format(urlObj), deleteOptions) as any).body.toJSON()
     } else {
       throw new Error('unsupported method ' + link.method)
     }

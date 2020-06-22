@@ -1,5 +1,5 @@
-import { RequestPromiseOptions } from 'request-promise-native'
-import { CookieJar } from 'request'
+import { Options } from 'got'
+import { CookieJar } from 'tough-cookie'
 
 export interface Link {
   rel: string
@@ -73,31 +73,31 @@ export function createRequestHeadersForLink (link: Link, headers: {[key: string]
 }
 
 export interface OptionsFactory {
-  createRequestOptions (link: Link, headers: any, requestOptions: RequestPromiseOptions): RequestPromiseOptions
-  createGetOptionsForService (service: string, requestOptions: RequestPromiseOptions): RequestPromiseOptions
-  createPutOrPostOptions (link: Link, body: any, headers: any, requestOptions: RequestPromiseOptions): RequestPromiseOptions
+  createRequestOptions (link: Link, headers: any, requestOptions: Options): Options
+  createGetOptionsForService (service: string, requestOptions: Options): Options
+  createPutOrPostOptions (link: Link, body: any, headers: any, requestOptions: Options): Options
 }
 
-export function createOptionsFactory (cookieJar: CookieJar | boolean, agentOptions: any): OptionsFactory {
-  function createRequestOptions (link: Link, headers: any, requestOptions: RequestPromiseOptions) {
+export function createOptionsFactory (cookieJar: CookieJar, httpsOptions: any): OptionsFactory {
+  function createRequestOptions (link: Link, headers: any, requestOptions: Options): Options {
     return {
       ...requestOptions,
-      jar: cookieJar,
-      agentOptions: agentOptions,
+      cookieJar: cookieJar,
+      https: httpsOptions,
       headers: createRequestHeadersForLink(link, headers)
     }
   }
 
-  function createGetOptionsForService (service: string, requestOptions: RequestPromiseOptions) {
+  function createGetOptionsForService (service: string, requestOptions: Options) {
     return {
       ...requestOptions,
-      jar: cookieJar,
-      agentOptions: agentOptions,
+      cookieJar: cookieJar,
+      https: httpsOptions,
       headers: createRequestHeadersForIndex(service)
     }
   }
 
-  function createPutOrPostOptions (link: Link, body: any, headers: any, requestOptions: RequestPromiseOptions) {
+  function createPutOrPostOptions (link: Link, body: any, headers: any, requestOptions: Options) {
     const optionsForGet = createRequestOptions(link, headers, requestOptions)
     return {
       ...optionsForGet,

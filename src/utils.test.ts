@@ -214,11 +214,13 @@ describe('utils', function () {
         const options = optionsFactory.createRequestOptions(getLink, {}, {
           timeout: 10000,
           decompress: false,
-          cookieJar: cookieJar
+          cookieJar: cookieJar,
+          retry: 3
         })
         expect(options.timeout).to.equal(10000)
         expect(options.decompress).to.equal(false)
         expect(options.cookieJar).to.equal(cookieJar)
+        expect(options.retry).to.equal(3)
       })
     })
 
@@ -233,11 +235,13 @@ describe('utils', function () {
         const options = optionsFactory.createPutOrPostOptions(postLink, {}, {}, {
           timeout: 10000,
           decompress: true,
-          cookieJar: undefined
+          cookieJar: undefined,
+          retry: 5
         })
         expect(options.timeout).to.equal(10000)
         expect(options.decompress).to.equal(true)
         expect(options.cookieJar).to.equal(cookieJar)
+        expect(options.retry).to.equal(5)
       })
     })
 
@@ -252,13 +256,11 @@ describe('utils', function () {
         const options = optionsFactory.createGetOptionsForService('examen', {
           timeout: 20000,
           decompress: false,
-          cookieJar,
-          retry: 2
+          cookieJar: cookieJar
         })
         expect(options.timeout).to.equal(20000)
         expect(options.decompress).to.equal(false)
         expect(options.cookieJar).to.equal(cookieJar)
-        expect(options.retry).to.equal(2)
       })
     })
   })

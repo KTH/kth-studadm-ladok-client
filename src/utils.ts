@@ -84,7 +84,7 @@ export function createOptionsFactory (cookieJar: CookieJar, httpsOptions: any): 
       ...requestOptions,
       cookieJar: cookieJar,
       https: httpsOptions,
-      headers: createRequestHeadersForLink(link, headers)
+      headers: createRequestHeadersForLink(link, headers),
     }
   }
 
@@ -93,15 +93,15 @@ export function createOptionsFactory (cookieJar: CookieJar, httpsOptions: any): 
       ...requestOptions,
       cookieJar: cookieJar,
       https: httpsOptions,
-      headers: createRequestHeadersForIndex(service)
+      headers: createRequestHeadersForIndex(service),
     }
   }
 
   function createPutOrPostOptions (link: Link, body: any, headers: any, requestOptions: Options) {
     const optionsForGet = createRequestOptions(link, headers, requestOptions)
     return {
-      ...optionsForGet,
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
+      ...optionsForGet
     }
   }
 

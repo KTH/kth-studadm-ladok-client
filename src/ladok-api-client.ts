@@ -54,8 +54,7 @@ export function createLadokApiClient ({ baseUrl, sslOptions }: LadokApiClientCon
     if (!service) throw new LadokApiError('argument service is required')
     const url = `${baseUrl}/${service}/service/index`
     let getOptions: Options = optionsFactory.createGetOptionsForService(service, requestOptions || {})
-    const resp: any = (await got(url, getOptions))
-    return resp.body.json()
+    return (await got(url, getOptions) as any).body.toJSON()
   }
 
   async function getIndexLinksForService (service: string) {

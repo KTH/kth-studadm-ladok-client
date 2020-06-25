@@ -33,7 +33,10 @@
     "typescript": "^2.8.3"
   },
   "dependencies": {
+    "@types/got": "^9.6.11",
     "@types/request-promise-native": "^1.0.14",
+    "dotenv": "^8.2.0",
+    "got": "^9.6.0",
     "request": "^2.86.0",
     "request-promise-native": "^1.0.5"
   }

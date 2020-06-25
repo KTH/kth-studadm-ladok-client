@@ -1,5 +1,6 @@
-import { Options } from 'got'
+import { GotOptions } from 'got'
 import { CookieJar } from 'tough-cookie'
+import {LadokApiClientConfig} from "./ladok-api-client";
 
 export interface Link {
   rel: string
@@ -73,32 +74,32 @@ export function createRequestHeadersForLink (link: Link, headers: {[key: string]
 }
 
 export interface OptionsFactory {
-  createRequestOptions (link: Link, headers: any, requestOptions: Options): Options
-  createGetOptionsForService (service: string, requestOptions: Options): Options
-  createPutOrPostOptions (link: Link, body: any, headers: any, requestOptions: Options): Options
+  createRequestOptions (link: Link, headers: any, requestOptions: GotOptions<any>): GotOptions<any>
+  createGetOptionsForService (service: string, requestOptions: GotOptions<any>): GotOptions<any>
+  createPutOrPostOptions (link: Link, body: any, headers: any, requestOptions: GotOptions<any>): GotOptions<any>
 }
 
-export function createOptionsFactory (cookieJar: CookieJar, httpsOptions: any): OptionsFactory {
-  function createRequestOptions (link: Link, headers: any, requestOptions: Options): Options {
+export function createOptionsFactory (cookieJar: CookieJar,config: LadokApiClientConfig): OptionsFactory {
+  function createRequestOptions (link: Link, headers: any,options: GotOptions<any>): GotOptions<any> {
     return {
-      ...requestOptions,
+      ...options,
+      ...config,
       cookieJar: cookieJar,
-      https: httpsOptions,
       headers: createRequestHeadersForLink(link, headers),
     }
   }
 
-  function createGetOptionsForService (service: string, requestOptions: Options) {
+  function createGetOptionsForService (service: string, options: GotOptions<any>) {
     return {
-      ...requestOptions,
+      ...options,
+      ...config,
       cookieJar: cookieJar,
-      https: httpsOptions,
       headers: createRequestHeadersForIndex(service)
     }
   }
 
-  function createPutOrPostOptions (link: Link, body: any, headers: any, requestOptions: Options) {
-    const optionsForGet = createRequestOptions(link, headers, requestOptions)
+  function createPutOrPostOptions (link: Link, body: any, headers: any, options: GotOptions<any>) {
+    const optionsForGet = createRequestOptions(link, headers, options)
     return {
       body: JSON.stringify(body),
       ...optionsForGet

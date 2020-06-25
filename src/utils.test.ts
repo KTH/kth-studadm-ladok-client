@@ -202,11 +202,10 @@ describe('utils', function () {
       uri: 'https://api.ladok.se/resultat/uri',
       method: 'POST'
     }
-    const optionsFactory = createOptionsFactory(cookieJar, sslOptions)
+    const optionsFactory = createOptionsFactory(cookieJar)
     describe('createRequestOptions', function () {
       it('should include jar and ssl options', function () {
         const options = optionsFactory.createRequestOptions(getLink, {}, {})
-        expect(options.https).to.equal(sslOptions)
         expect(options.cookieJar).to.equal(cookieJar)
       })
 
@@ -227,7 +226,6 @@ describe('utils', function () {
     describe('createPutOrPostOptions', function () {
       it('should include jar and ssl options', function () {
         const options = optionsFactory.createPutOrPostOptions(postLink, {}, {}, {})
-        expect(options.https).to.equal(sslOptions)
         expect(options.cookieJar).to.equal(cookieJar)
       })
 
@@ -248,7 +246,6 @@ describe('utils', function () {
     describe('createPutOrPostOptions', function () {
       it('should include jar and ssl options', function () {
         const options = optionsFactory.createGetOptionsForService('examen', {})
-        expect(options.https).to.equal(sslOptions)
         expect(options.cookieJar).to.equal(cookieJar)
       })
 

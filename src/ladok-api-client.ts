@@ -1,7 +1,7 @@
 import url from 'url'
 import {createOptionsFactory, findLink, LadokApiError, Link, serviceForRel} from './utils'
 
-import got, {GotOptions} from 'got'
+import got, {GotJSONOptions, GotOptions} from 'got'
 import {CookieJar} from 'tough-cookie'
 
 export interface LadokApiClientConfig {
@@ -9,13 +9,12 @@ export interface LadokApiClientConfig {
     pfx: Buffer,
     passphrase: string
     retry: number
-    json: boolean
 }
 
 export interface FollowOptions {
     queryParams?: any,
     body?: any,
-    requestOptions?: GotOptions<null>,
+    requestOptions?: GotJSONOptions,
     headers?: {
         [key: string]: string
     }
@@ -46,11 +45,11 @@ export function createLadokApiClient(config: LadokApiClientConfig): LadokApiClie
 
     console.log(config)
 
-    async function fetchIndexForService(service: string, requestOptions?: GotOptions<string>) {
+    async function fetchIndexForService(service: string,options?: GotJSONOptions) {
         try {
             if (!service) throw new LadokApiError('argument service is required')
             const url = `${config.baseUrl}/${service}/service/index`
-            let getOptions: GotOptions<any> = optionsFactory.createGetOptionsForService(service, requestOptions || {})
+            let getOptions: GotOptions<any> = optionsFactory.createGetOptionsForService(service, options || { json: true })
             console.log(getOptions, url, config)
             return got.get(url, getOptions).then(resp => resp.body)
         } catch (error) {
@@ -93,7 +92,7 @@ export function createLadokApiClient(config: LadokApiClientConfig): LadokApiClie
         }
         const body = followOptions && followOptions.body || {}
         const headers = followOptions && followOptions.headers || {}
-        const requestOptions = followOptions && followOptions.requestOptions || {}
+        const requestOptions: any = followOptions && followOptions.requestOptions || {json: true}
         if (link.method === 'GET') {
             let getOptionbs = optionsFactory.createRequestOptions(link, headers, requestOptions)
             return (await got.get(url.format(urlObj), getOptionbs) as any).body

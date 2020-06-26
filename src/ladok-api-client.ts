@@ -41,16 +41,11 @@ export function createLadokApiClient(config: LadokApiClientConfig): LadokApiClie
     const optionsFactory = createOptionsFactory(cookieJar,config)
     const linkIndex = new Map()
 
-    const ladokGot = got
-
-    console.log(config)
-
     async function fetchIndexForService(service: string,options?: GotJSONOptions) {
         try {
             if (!service) throw new LadokApiError('argument service is required')
             const url = `${config.baseUrl}/${service}/service/index`
             let getOptions: GotOptions<any> = optionsFactory.createGetOptionsForService(service, options || { json: true })
-            console.log(getOptions, url, config)
             return got.get(url, getOptions).then(resp => resp.body)
         } catch (error) {
             console.log(`Error in fetchIndexForService: ${error.toString()}`)
@@ -71,7 +66,7 @@ export function createLadokApiClient(config: LadokApiClientConfig): LadokApiClie
         }
     }
 
-    async function findIndexLink(rel: string, method: string = 'GET') {
+    async function findIndexLink( rel: string, method: string = 'GET') {
         return findLink(await getIndexLinksForService(serviceForRel(rel)), rel, method)
     }
 
@@ -92,25 +87,25 @@ export function createLadokApiClient(config: LadokApiClientConfig): LadokApiClie
         }
         const body = followOptions && followOptions.body || {}
         const headers = followOptions && followOptions.headers || {}
-        const requestOptions: any = followOptions && followOptions.requestOptions || {json: true}
+        const requestOptions: any = followOptions && followOptions.requestOptions || { json: true }
         if (link.method === 'GET') {
             let getOptionbs = optionsFactory.createRequestOptions(link, headers, requestOptions)
-            return (await got.get(url.format(urlObj), getOptionbs) as any).body
+            return (await got.get(url.format(urlObj), getOptionbs)).body
         } else if (link.method === 'PUT') {
             let putOptions = optionsFactory.createPutOrPostOptions(link, body, headers, requestOptions)
-            return (await got.put(url.format(urlObj), putOptions) as any).body
+            return (await got.put(url.format(urlObj), putOptions)).body
         } else if (link.method === 'POST') {
             let postOptions = optionsFactory.createPutOrPostOptions(link, body, headers, requestOptions)
-            return (await got.post(url.format(urlObj), postOptions) as any).body
+            return (await got.post(url.format(urlObj), postOptions)).body
         } else if (link.method === 'DELETE') {
             let deleteOptions = optionsFactory.createRequestOptions(link, headers, requestOptions)
-            return parseJSON(await got.delete(url.format(urlObj), deleteOptions) as any).body.toJSON()
+            return (await got.delete(url.format(urlObj), deleteOptions)).body
         } else {
             throw new Error('unsupported method ' + link.method)
         }
     }
 
-    function statusForService(service: string) {
+    function statusForService( service: string) {
         if (!service) throw new LadokApiError('argument service is required')
         return fetchIndexForService(service)
             .then(response => true)

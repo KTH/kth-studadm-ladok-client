@@ -12,6 +12,8 @@ import {
   serviceForUri
 } from './utils'
 
+import { CookieJar } from 'tough-cookie'
+
 describe('utils', function () {
   describe('serviceForRel', function () {
     const relStudiedeltagande = 'http://relations.ladok.se/studiedeltagande/arel'
@@ -188,7 +190,7 @@ describe('utils', function () {
   })
 
   describe('optionsFactory', function () {
-    const cookieJar = true
+    const cookieJar = new CookieJar()
     const sslOptions = { pfx: 'pfxdata', passphrase: 'pfxpass' }
     const getLink = {
       rel: 'http://relations.ladok.se/resultat/rel',
@@ -200,61 +202,62 @@ describe('utils', function () {
       uri: 'https://api.ladok.se/resultat/uri',
       method: 'POST'
     }
-    const optionsFactory = createOptionsFactory(cookieJar, sslOptions)
+    const optionsFactory = createOptionsFactory(cookieJar)
     describe('createRequestOptions', function () {
       it('should include jar and ssl options', function () {
         const options = optionsFactory.createRequestOptions(getLink, {}, {})
-        expect(options.agentOptions).to.equal(sslOptions)
-        expect(options.jar).to.equal(cookieJar)
+        expect(options.cookieJar).to.equal(cookieJar)
       })
 
       it('should include any additional request js options', function () {
         const options = optionsFactory.createRequestOptions(getLink, {}, {
           timeout: 10000,
-          gzip: true,
-          jar: false
+          decompress: false,
+          cookieJar: cookieJar,
+          retry: 3
         })
         expect(options.timeout).to.equal(10000)
-        expect(options.gzip).to.equal(true)
-        expect(options.jar).to.equal(true)
+        expect(options.decompress).to.equal(false)
+        expect(options.cookieJar).to.equal(cookieJar)
+        expect(options.retry).to.equal(3)
       })
     })
 
     describe('createPutOrPostOptions', function () {
       it('should include jar and ssl options', function () {
         const options = optionsFactory.createPutOrPostOptions(postLink, {}, {}, {})
-        expect(options.agentOptions).to.equal(sslOptions)
-        expect(options.jar).to.equal(cookieJar)
+        expect(options.cookieJar).to.equal(cookieJar)
       })
 
       it('should include any additional request js options', function () {
         const options = optionsFactory.createPutOrPostOptions(postLink, {}, {}, {
           timeout: 10000,
-          gzip: true,
-          jar: false
+          decompress: true,
+          cookieJar: undefined,
+          retry: 5
         })
         expect(options.timeout).to.equal(10000)
-        expect(options.gzip).to.equal(true)
-        expect(options.jar).to.equal(true)
+        expect(options.decompress).to.equal(true)
+        expect(options.cookieJar).to.equal(cookieJar)
+        expect(options.retry).to.equal(5)
       })
     })
 
     describe('createPutOrPostOptions', function () {
       it('should include jar and ssl options', function () {
         const options = optionsFactory.createGetOptionsForService('examen', {})
-        expect(options.agentOptions).to.equal(sslOptions)
-        expect(options.jar).to.equal(cookieJar)
+        expect(options.cookieJar).to.equal(cookieJar)
       })
 
       it('should include any additional request js options', function () {
         const options = optionsFactory.createGetOptionsForService('examen', {
-          timeout: 10000,
-          gzip: true,
-          jar: false
+          timeout: 20000,
+          decompress: false,
+          cookieJar: cookieJar
         })
-        expect(options.timeout).to.equal(10000)
-        expect(options.gzip).to.equal(true)
-        expect(options.jar).to.equal(true)
+        expect(options.timeout).to.equal(20000)
+        expect(options.decompress).to.equal(false)
+        expect(options.cookieJar).to.equal(cookieJar)
       })
     })
   })

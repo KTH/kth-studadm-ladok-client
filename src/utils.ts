@@ -1,6 +1,6 @@
-import { RequestPromiseOptions } from 'request-promise-native'
-import { CookieJar } from 'request'
-
+import { GotJSONOptions } from 'got'
+import { CookieJar } from 'tough-cookie'
+import { LadokApiClientConfig } from './ladok-api-client'
 export interface Link {
   rel: string
   method: string
@@ -73,35 +73,36 @@ export function createRequestHeadersForLink (link: Link, headers: {[key: string]
 }
 
 export interface OptionsFactory {
-  createRequestOptions (link: Link, headers: any, requestOptions: RequestPromiseOptions): RequestPromiseOptions
-  createGetOptionsForService (service: string, requestOptions: RequestPromiseOptions): RequestPromiseOptions
-  createPutOrPostOptions (link: Link, body: any, headers: any, requestOptions: RequestPromiseOptions): RequestPromiseOptions
+  createRequestOptions (link: Link, headers: any, options: GotJSONOptions): GotJSONOptions
+  createGetOptionsForService (service: string, options: GotJSONOptions): GotJSONOptions
+  createPutOrPostOptions (link: Link, body: any, headers: any, options: GotJSONOptions): GotJSONOptions
 }
 
-export function createOptionsFactory (cookieJar: CookieJar | boolean, agentOptions: any): OptionsFactory {
-  function createRequestOptions (link: Link, headers: any, requestOptions: RequestPromiseOptions) {
+export function createOptionsFactory (cookieJar: CookieJar,config: LadokApiClientConfig): OptionsFactory {
+  const ladokOptions: LadokApiClientConfig = config
+  function createRequestOptions (link: Link, headers: any,options: GotJSONOptions): GotJSONOptions {
     return {
-      ...requestOptions,
-      jar: cookieJar,
-      agentOptions: agentOptions,
+      ...options,
+      ...ladokOptions,
+      cookieJar: cookieJar,
       headers: createRequestHeadersForLink(link, headers)
     }
   }
 
-  function createGetOptionsForService (service: string, requestOptions: RequestPromiseOptions) {
+  function createGetOptionsForService (service: string, options: GotJSONOptions): GotJSONOptions {
     return {
-      ...requestOptions,
-      jar: cookieJar,
-      agentOptions: agentOptions,
+      ...options,
+      ...ladokOptions,
+      cookieJar: cookieJar,
       headers: createRequestHeadersForIndex(service)
     }
   }
 
-  function createPutOrPostOptions (link: Link, body: any, headers: any, requestOptions: RequestPromiseOptions) {
-    const optionsForGet = createRequestOptions(link, headers, requestOptions)
+  function createPutOrPostOptions (link: Link, body: any, headers: any, options: GotJSONOptions): GotJSONOptions {
+    const optionsForGet = createRequestOptions(link, headers, options)
     return {
-      ...optionsForGet,
-      body: JSON.stringify(body)
+      body: body ,
+      ...optionsForGet
     }
   }
 
